@@ -1,27 +1,22 @@
 import re, os
 
-from database import Database
 import globals, statement
 
 
 def main(args=None):
 
-    try:
-        statements = get_input()
+    while True:
 
+        try:
+            statements = get_input()
+            factory = statement.StatementFactory()
 
-        print(statements)
-        print(statements[0])
-        
-        factory = statement.StatementFactory()
-        stmnt = factory.make_statement(statements[0])
+            for s in statements:
+                stmnt = factory.make_statement(s)
+                stmnt.execute()
 
-        stmnt.execute()
-
-        print(stmnt)
-
-    except Exception as exc:
-        print(exc)
+        except Exception as exc:
+            print(exc)
 
 
 

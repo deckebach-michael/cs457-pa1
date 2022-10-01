@@ -1,3 +1,4 @@
+from operator import contains
 import re, os
 
 import globals, statement
@@ -12,6 +13,9 @@ def main(args=None):
             factory = statement.StatementFactory()
 
             for s in statements:
+                if s == 'EXIT':
+                    quit()
+
                 stmnt = factory.make_statement(s)
                 stmnt.execute()
 
@@ -24,7 +28,7 @@ def get_input():
 
     user_input = input()
 
-    if ends_with_semicolon(user_input):
+    if ends_with_semicolon(user_input) or is_exit(user_input):
         return split_statements(user_input)
 
     else:
@@ -35,8 +39,20 @@ def ends_with_semicolon(str):
         return True
     return False
 
+def is_exit(str):
+    if str.endswith('EXIT'):
+        return True
+    return False
+
+
 def split_statements(str):
-    return str.split(';')[0:-1]
+    
+    split = str.split(';')[0:-1]
+
+    if str.endswith('EXIT'):
+        split.append('EXIT')
+
+    return split
 
 
 
@@ -65,23 +81,23 @@ def split_statements(str):
 
 
 
-def clausify(statement):
-    return statement.split()
+# def clausify(statement):
+#     return statement.split()
 
-def normalize(word):
-    return word.strip().upper()
+# def normalize(word):
+#     return word.strip().upper()
 
-def is_command(clausified):
-    first_clause = normalize(clausified[0])
-    return first_clause in globals.KEYWORDS_COMMANDS
-
-
+# def is_command(clausified):
+#     first_clause = normalize(clausified[0])
+#     return first_clause in globals.KEYWORDS_COMMANDS
 
 
-def is_create_db(statement):
-    return bool(re.search(r'(?i)(CREATE DATABASE )\w+', statement))
 
-def create_db(statement):
-    if is_create_db(statement):
-        clausified = clausify(statement)
-        os.mkdir(clausified[2])
+
+# def is_create_db(statement):
+#     return bool(re.search(r'(?i)(CREATE DATABASE )\w+', statement))
+
+# def create_db(statement):
+#     if is_create_db(statement):
+#         clausified = clausify(statement)
+#         os.mkdir(clausified[2])

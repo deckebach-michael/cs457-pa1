@@ -1,6 +1,7 @@
 import re
 
 from database import Database
+from table import Table
 import globals
 
 
@@ -19,29 +20,28 @@ class StatementFactory:
 
         elif self.is_use_statement(str):
             return UseStatement(str)
+
+        elif self.is_select_statement(str):
+            return SelectStatement(str)
             
             # TODO
-
-            # case use_regex_match:
-            #     return Use_statement(str)
-
             # case alter_regex_match:
             #     return Alter_statement(str)
-
-            # case select_regex_match:
-            #     return Select_statement(str)
 
         else:
             raise Exception("Command not supported: " + str)
 
     def is_create_statement(self, str):
-        return bool(re.search(r'(?i)(CREATE )\w{2}', str))
+        return bool(re.search(r'(?i)(CREATE )(.*)', str))
 
     def is_drop_statement(self, str):
         return bool(re.search(r'(?i)(DROP )\w{2}', str))
 
     def is_use_statement(self, str):
-        return bool(re.search(r'(?i)(USE )\w{1}', str))
+        return bool(re.search(r'(?i)(USE )\w{2}', str))
+
+    def is_select_statement(self, str):
+        return bool(re.search(r'(?i)(SELECT )(.*)', str))
 
 class Statement:
 
@@ -59,17 +59,26 @@ class CreateStatement(Statement):
     def __init__(self, str):
         Statement.__init__(self, str)
 
-        if not self.correct_size():
+        if not self.min_size():
             raise Exception("Invalid CREATE command. Please check syntax")
 
         self.type = self.parsed[1].upper()
         self.object_name = self.parsed[2]
 
+        if not self.correct_size():
+            raise Exception("Invalid CREATE command. Please check syntax")
+
         if not self.valid_type():
             raise Exception("Invalid CREATE command. Valid objects are CREATE DATABASE <name> or CREATE TABLE <name>")
 
+    def min_size(self):
+        return self.num_words >= 3
+
     def correct_size(self):
-        return self.num_words == 3
+        if self.type == 'DATABASE':
+            return self.num_words == 3
+        elif self.type == 'TABLE':
+            return self.num_words >= 3
 
     def valid_type(self):
         return self.type in globals.KEYWORDS_OBJECTS
@@ -78,8 +87,18 @@ class CreateStatement(Statement):
         if self.type == 'DATABASE':
             Database(self.object_name).create()
         elif self.type == 'TABLE':
-            #TODO: write table
-            pass
+
+            # Generate a list of fields and types
+            field_str = ' '.join(self.parsed[3:])
+            fields = self.parse_fields(field_str)
+            
+            Table(self.object_name).create(fields)
+
+    def parse_fields(self, str):
+        fields = re.findall(r'(?![(].*)[^,]*(?=.*[)]$)', str)
+        return [i for i in fields if i != '']
+
+
 
 class DropStatement(Statement):
 
@@ -106,7 +125,7 @@ class DropStatement(Statement):
             Database(self.object_name).drop()
             pass
         elif self.type == 'TABLE':
-            #TODO: Write Table function
+            Table(self.object_name).drop()
             pass
 
 class UseStatement(Statement):
@@ -125,3 +144,27 @@ class UseStatement(Statement):
     def execute(self):
         Database(self.object_name).use()
         pass
+
+class SelectStatement(Statement):
+
+    def __init__(self, str):
+        Statement.__init__(self, str)
+
+        #######################################################################
+        #todo: NEED TO ADD ERROR CHECKING
+        #######################################################################        
+        self.parse_clauses()
+
+    def execute(self):
+        Table(self.from_clause).select(self.select_clause)
+
+    def parse_clauses(self):
+
+        #######################################################################
+        #todo: NEED TO MAKE below re.search CASE INSENSITIVE USING FLAG syntax!
+        #######################################################################
+        self.select_clause = re.search(r'(?<=SELECT\s)(.*)(?=\sFROM)', self.str).group()
+        self.select_clause = self.select_clause.split(',')
+        self.select_clause = [i.strip() for i in self.select_clause]
+        
+        self.from_clause = re.search(r'(?<=FROM\s)(.*)', self.str).group()

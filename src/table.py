@@ -4,9 +4,28 @@ class Table():
     def __init__(self, name):
         self.name = name
 
-    def alter(self):
-        #TODO
-        pass
+    def alter(self, new_field):
+        if not os.path.exists(self.name):
+            raise Exception("!Failed to alter " + self.name + " because it does not exist.")
+    
+        altered = []
+
+        with open(self.name) as csvfile:
+            reader = csv.reader(csvfile)
+
+            headers = next(reader)
+            headers.append(new_field)
+            altered.append(headers)
+
+            for row in reader:
+                row.append(None)
+                altered.append(row)
+        
+        with open(self.name, 'w') as csvfile:
+            writer = csv.writer(csvfile, lineterminator='\n')
+            writer.writerows(altered)
+
+        print("Table " + self.name + " modified.")
 
     def create(self, fields):
         if os.path.exists(self.name):
@@ -33,7 +52,7 @@ class Table():
             csvreader = csv.reader(csvfile)
             for row in csvreader:
                 if select_clause == ['*']:
-                    print(' |'.join(row))
+                    print(' | '.join(row))
                 else:
                     #todo - placeholder to implement more advanced select syntax
                     pass

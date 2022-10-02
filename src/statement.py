@@ -24,10 +24,8 @@ class StatementFactory:
         elif self.is_select_statement(str):
             return SelectStatement(str)
             
-            # TODO
-            # case alter_regex_match:
-            #     return Alter_statement(str)
-
+        elif self.is_alter_statement(str):
+            return AlterStatement(str)
         else:
             raise Exception("Command not supported: " + str)
 
@@ -42,6 +40,9 @@ class StatementFactory:
 
     def is_select_statement(self, str):
         return bool(re.search(r'(?i)(SELECT )(.*)', str))
+        
+    def is_alter_statement(self, str):
+        return bool(re.search(r'(?i)(ALTER )(.*)', str))
 
 class Statement:
 
@@ -96,7 +97,7 @@ class CreateStatement(Statement):
 
     def parse_fields(self, str):
         fields = re.findall(r'(?![(].*)[^,]*(?=.*[)]$)', str)
-        return [i for i in fields if i != '']
+        return [i.strip() for i in fields if i != '']
 
 
 
@@ -168,3 +169,24 @@ class SelectStatement(Statement):
         self.select_clause = [i.strip() for i in self.select_clause]
         
         self.from_clause = re.search(r'(?<=FROM\s)(.*)', self.str).group()
+
+class AlterStatement(Statement):
+
+    def __init__(self, str):
+        Statement.__init__(self, str)
+
+        #######################################################################
+        #todo: NEED TO ADD ERROR CHECKING
+        #######################################################################        
+        self.parse_clauses()
+
+    def execute(self):
+        Table(self.from_clause).alter(self.new_field)
+
+    def parse_clauses(self):
+
+        #######################################################################
+        #todo: NEED TO MAKE below re.search CASE INSENSITIVE USING FLAG syntax!
+        #######################################################################
+        self.from_clause = re.search(r'(?<=ALTER TABLE\s)(.*)(?=\sADD)', self.str).group()
+        self.new_field = re.search(r'(?<=ADD\s)(.*)', self.str).group().strip()

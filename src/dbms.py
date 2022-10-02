@@ -14,6 +14,7 @@ def main(args=None):
 
             for s in statements:
                 if s == 'EXIT':
+                    print('All done.')
                     quit()
 
                 stmnt = factory.make_statement(s)

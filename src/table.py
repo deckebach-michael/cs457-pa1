@@ -1,4 +1,15 @@
+'''
+Name: table.py
+Author: Michael Deckebach
+Date: 2022-10-01
+Description: Implementation of a Table class, which represents two dimensional
+data (rows & columns) in a database. Records (tuples) are stored as 
+comma-separated values in a CSV file. Each CSV file can be thought of as 
+a single table. Field names and types are stored in the first row of the file.
+'''
+
 import csv, os
+
 
 class Table():
     def __init__(self, name):

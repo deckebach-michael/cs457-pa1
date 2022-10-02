@@ -1,8 +1,24 @@
+'''
+Name: statement.py
+Author: Michael Deckebach
+Date: 2022-10-01
+Description: Implementation of the following classes:
+
+    StatementFactory - Abstract class to create various SQL statements
+    Statement - Interface providing the basic structure of a SQL statement
+    AlterStatement - An ALTER TABLE statement
+    CreateStatement - A CREATE statement (CREATE DATABASE or CREATE TABLE)
+    DropStatement - A DROP statement (DROP DATABASE or DROP TABLE)
+    SelectStatement - A SELECT statement (SELECT * FROM <table>)
+    UseStatement - A USE statement (USE <database>)
+
+'''
+
 import re
 
 from database import Database
 from table import Table
-import globals
+import utils
 
 
 class StatementFactory:
@@ -12,37 +28,38 @@ class StatementFactory:
 
     def make_statement(self, str):
 
-        if self.is_create_statement(str):
+        if self._is_alter_statement(str):
+            return AlterStatement(str)
+        
+        elif self._is_create_statement(str):
             return CreateStatement(str)
 
-        elif self.is_drop_statement(str):
+        elif self._is_drop_statement(str):
             return DropStatement(str)
 
-        elif self.is_use_statement(str):
+        elif self._is_select_statement(str):
+            return SelectStatement(str)
+
+        elif self._is_use_statement(str):
             return UseStatement(str)
 
-        elif self.is_select_statement(str):
-            return SelectStatement(str)
-            
-        elif self.is_alter_statement(str):
-            return AlterStatement(str)
         else:
             raise Exception("Command not supported: " + str)
 
-    def is_create_statement(self, str):
+    def _is_alter_statement(self, str):
+        return bool(re.search(r'(?i)(ALTER )(.*)', str))
+
+    def _is_create_statement(self, str):
         return bool(re.search(r'(?i)(CREATE )(.*)', str))
 
-    def is_drop_statement(self, str):
+    def _is_drop_statement(self, str):
         return bool(re.search(r'(?i)(DROP )\w{2}', str))
 
-    def is_use_statement(self, str):
-        return bool(re.search(r'(?i)(USE )\w{2}', str))
-
-    def is_select_statement(self, str):
+    def _is_select_statement(self, str):
         return bool(re.search(r'(?i)(SELECT )(.*)', str))
-        
-    def is_alter_statement(self, str):
-        return bool(re.search(r'(?i)(ALTER )(.*)', str))
+
+    def _is_use_statement(self, str):
+        return bool(re.search(r'(?i)(USE )\w{2}', str))
 
 class Statement:
 
@@ -54,6 +71,26 @@ class Statement:
     def execute(self):
         pass
 
+class AlterStatement(Statement):
+
+    def __init__(self, str):
+        Statement.__init__(self, str)
+
+        #######################################################################
+        #todo: NEED TO ADD ERROR CHECKING
+        #######################################################################        
+        self.parse_clauses()
+
+    def execute(self):
+        Table(self.from_clause).alter(self.new_field)
+
+    def parse_clauses(self):
+
+        #######################################################################
+        #todo: NEED TO MAKE below re.search CASE INSENSITIVE USING FLAG syntax!
+        #######################################################################
+        self.from_clause = re.search(r'(?<=ALTER TABLE\s)(.*)(?=\sADD)', self.str).group()
+        self.new_field = re.search(r'(?<=ADD\s)(.*)', self.str).group().strip()
 
 class CreateStatement(Statement):
 
@@ -72,17 +109,11 @@ class CreateStatement(Statement):
         if not self.valid_type():
             raise Exception("Invalid CREATE command. Valid objects are CREATE DATABASE <name> or CREATE TABLE <name>")
 
-    def min_size(self):
-        return self.num_words >= 3
-
     def correct_size(self):
         if self.type == 'DATABASE':
             return self.num_words == 3
         elif self.type == 'TABLE':
             return self.num_words >= 3
-
-    def valid_type(self):
-        return self.type in globals.KEYWORDS_OBJECTS
  
     def execute(self):
         if self.type == 'DATABASE':
@@ -95,9 +126,15 @@ class CreateStatement(Statement):
             
             Table(self.object_name).create(fields)
 
+    def min_size(self):
+        return self.num_words >= 3
+
     def parse_fields(self, str):
         fields = re.findall(r'(?![(].*)[^,]*(?=.*[)]$)', str)
         return [i.strip() for i in fields if i != '']
+
+    def valid_type(self):
+        return self.type in utils.KEYWORDS_OBJECTS
 
 
 
@@ -118,9 +155,6 @@ class DropStatement(Statement):
     def correct_size(self):
         return self.num_words == 3
 
-    def valid_type(self):
-        return self.type in globals.KEYWORDS_OBJECTS
-
     def execute(self):
         if self.type == 'DATABASE':
             Database(self.object_name).drop()
@@ -129,22 +163,8 @@ class DropStatement(Statement):
             Table(self.object_name).drop()
             pass
 
-class UseStatement(Statement):
-
-    def __init__(self, str):
-        Statement.__init__(self, str)
-
-        if not self.correct_size():
-            raise Exception("Invalid USE command. Please check syntax")
-
-        self.object_name = self.parsed[1]
-
-    def correct_size(self):
-        return self.num_words == 2
-
-    def execute(self):
-        Database(self.object_name).use()
-        pass
+    def valid_type(self):
+        return self.type in utils.KEYWORDS_OBJECTS
 
 class SelectStatement(Statement):
 
@@ -170,23 +190,19 @@ class SelectStatement(Statement):
         
         self.from_clause = re.search(r'(?<=FROM\s)(.*)', self.str).group()
 
-class AlterStatement(Statement):
+class UseStatement(Statement):
 
     def __init__(self, str):
         Statement.__init__(self, str)
 
-        #######################################################################
-        #todo: NEED TO ADD ERROR CHECKING
-        #######################################################################        
-        self.parse_clauses()
+        if not self.correct_size():
+            raise Exception("Invalid USE command. Please check syntax")
+
+        self.object_name = self.parsed[1]
+
+    def correct_size(self):
+        return self.num_words == 2
 
     def execute(self):
-        Table(self.from_clause).alter(self.new_field)
-
-    def parse_clauses(self):
-
-        #######################################################################
-        #todo: NEED TO MAKE below re.search CASE INSENSITIVE USING FLAG syntax!
-        #######################################################################
-        self.from_clause = re.search(r'(?<=ALTER TABLE\s)(.*)(?=\sADD)', self.str).group()
-        self.new_field = re.search(r'(?<=ADD\s)(.*)', self.str).group().strip()
+        Database(self.object_name).use()
+        pass

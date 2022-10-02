@@ -1,16 +1,38 @@
-from operator import contains
-import re, os
+'''
+Name: dbms.py
+Author: Michael Deckebach
+Date: 2022-10-01
+Description: A simple database management system implemented in pure python.
+Creates a command line environment for simple SQL statements.
 
-import globals, statement
+Supported statements and syntax include:
+
+    ALTER TABLE <table> ADD <field> <datatype>;
+    CREATE DATABASE <database>;
+    CREATE TABLE <table> (<field> <datatype>, <field> <datatype>, ...);
+    DROP DATABASE <database>;
+    DROP TABLE <table>;
+    SELECT * FROM <table>;
+    USE <database>;
+
+Additionally, the following commands are supported:
+
+    EXIT - terminates the program
+
+Semicolons (;) are strictly required to denote a SQL statement, but not required
+for additional, non-SQL interface commands like EXIT.
+'''
+
+from statement import StatementFactory
+from utils import get_input
 
 
 def main(args=None):
 
     while True:
-
         try:
             statements = get_input()
-            factory = statement.StatementFactory()
+            factory = StatementFactory()
 
             for s in statements:
                 if s == 'EXIT':
@@ -22,83 +44,3 @@ def main(args=None):
 
         except Exception as exc:
             print(exc)
-
-
-
-def get_input():
-
-    user_input = input()
-
-    if ends_with_semicolon(user_input) or is_exit(user_input):
-        return split_statements(user_input)
-
-    else:
-        raise Exception("Command does not end with a semicolon. Please try again.")
-
-def ends_with_semicolon(str):
-    if str.endswith(';'):
-        return True
-    return False
-
-def is_exit(str):
-    if str.endswith('EXIT'):
-        return True
-    return False
-
-
-def split_statements(str):
-    
-    split = str.split(';')[0:-1]
-
-    if str.endswith('EXIT'):
-        split.append('EXIT')
-
-    return split
-
-
-
-
-
-
-
-
-
-
-# 
-    # raise Exception("could not get input")
-
-    # user_input = parse_statements(input())
-
-    # for statement in user_input:
-    #     # print(is_create_db(statement))
-    #     # clausified = clausify(statement)
-    #     # print(clausified)
-    #     # # print(is_command(clausified))
-    #     # print()
-    
-    #     create_db(statement)
-
-
-
-
-
-# def clausify(statement):
-#     return statement.split()
-
-# def normalize(word):
-#     return word.strip().upper()
-
-# def is_command(clausified):
-#     first_clause = normalize(clausified[0])
-#     return first_clause in globals.KEYWORDS_COMMANDS
-
-
-
-
-# def is_create_db(statement):
-#     return bool(re.search(r'(?i)(CREATE DATABASE )\w+', statement))
-
-# def create_db(statement):
-#     if is_create_db(statement):
-#         clausified = clausify(statement)
-#         os.mkdir(clausified[2])

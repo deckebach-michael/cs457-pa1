@@ -1,4 +1,13 @@
+'''
+Name: database.py
+Author: Michael Deckebach
+Date: 2022-10-01
+Description: Implementation of a Database class, which represents a traditional
+relational database. Databases are implemented as directories.
+'''
+
 import os
+
 
 class Database():
     def __init__(self, name):

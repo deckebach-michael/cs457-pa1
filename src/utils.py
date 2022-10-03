@@ -27,6 +27,10 @@ KEYWORDS_OBJECTS = {
 # UTILITY FUNCTIONS
 ###############################################################################
 
+# Gets user SQL input and returns it as a list, split along semicolons. The
+# semicolons are not preserved. Also checks to make sure SQL statements end 
+# with a semicolon and contains special processing for non-SQL EXIT command.
+
 def get_input():
 
     user_input = input()

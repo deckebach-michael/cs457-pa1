@@ -34,12 +34,12 @@ def main(args=None):
             statements = get_input()
             factory = StatementFactory()
 
-            for s in statements:
-                if s == 'EXIT':
+            for stmt_str in statements:
+                if stmt_str == 'EXIT':
                     print('All done.')
                     quit()
 
-                stmnt = factory.make_statement(s)
+                stmnt = factory.make_statement(stmt_str)
                 stmnt.execute()
 
         except Exception as exc:

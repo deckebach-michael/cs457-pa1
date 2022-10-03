@@ -3,7 +3,8 @@ Name: database.py
 Author: Michael Deckebach
 Date: 2022-10-01
 Description: Implementation of a Database class, which represents a traditional
-relational database. Databases are implemented as directories.
+relational database. Databases are implemented as directories. Implements 
+functionality for CREATE DATABASE, DROP DATABASE, and USE DATABASE commands.
 '''
 
 import os
@@ -24,17 +25,19 @@ class Database():
         if not os.path.exists(self.name):
             raise Exception("!Failed to delete " + self.name + " because it does not exist.")
         
-        ################################### !! ###############
-        os.rmdir(self.name) ## NEED TO MAKE THIS recursive so tables don't have to first be dropped
-        ################################### !! ###############
-        
+        # Remove all tables (files) inside the database folder, then remove the folder
+        for file in os.listdir(self.name):
+            os.remove(self.name + '/' + file)
+        os.rmdir(self.name)
         
         print("Database " + self.name + " deleted.")
 
     def use(self):
-        # This file must be on the same level of __main__.py to ensure folder (database) integrity
-        # as it relies on os.path.realpath to move between various database folders
+        # BUG: This file must be on the same level of dbms.py to ensure folder 
+        # (database) integrity as it relies on os.path.realpath to move between 
+        # various database folders:
         # os.chdir(os.path.dirname(os.path.realpath(__file__)) + '/' + self.name)
+        # Consider improving with more absolute & less relative approach in future.
         os.chdir(os.path.dirname(__file__) + '/..')
 
         if not os.path.exists(self.name):

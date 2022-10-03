@@ -21,6 +21,11 @@ from table import Table
 import utils
 
 
+# Class used to instantiate various Statement child classes, depending
+# on the type of SQL command submitted. Also checks for and throws an
+# error if unsupported SQL commands are submitted. Current support is
+# only for ALTER, CREATE, DROP, SELECT, and USE statements.
+
 class StatementFactory:
 
     def __init__(self):
@@ -61,6 +66,9 @@ class StatementFactory:
     def _is_use_statement(self, str):
         return bool(re.search(r'(?i)(USE )\w{2}', str))
 
+
+# Interface for Statement classes. Statement.str is the raw string the user
+# submitted.
 class Statement:
 
     def __init__(self, str):
@@ -74,23 +82,16 @@ class Statement:
 class AlterStatement(Statement):
 
     def __init__(self, str):
-        Statement.__init__(self, str)
-
-        #######################################################################
-        #todo: NEED TO ADD ERROR CHECKING
-        #######################################################################        
+        Statement.__init__(self, str)       
         self.parse_clauses()
 
     def execute(self):
         Table(self.from_clause).alter(self.new_field)
 
     def parse_clauses(self):
+        self.from_clause = re.search(r'(?<=ALTER TABLE\s)(.*)(?=\sADD)', self.str, re.I).group()
+        self.new_field = re.search(r'(?<=ADD\s)(.*)', self.str, re.I).group().strip()
 
-        #######################################################################
-        #todo: NEED TO MAKE below re.search CASE INSENSITIVE USING FLAG syntax!
-        #######################################################################
-        self.from_clause = re.search(r'(?<=ALTER TABLE\s)(.*)(?=\sADD)', self.str).group()
-        self.new_field = re.search(r'(?<=ADD\s)(.*)', self.str).group().strip()
 
 class CreateStatement(Statement):
 
@@ -137,7 +138,6 @@ class CreateStatement(Statement):
         return self.type in utils.KEYWORDS_OBJECTS
 
 
-
 class DropStatement(Statement):
 
     def __init__(self, str):
@@ -166,29 +166,26 @@ class DropStatement(Statement):
     def valid_type(self):
         return self.type in utils.KEYWORDS_OBJECTS
 
+
 class SelectStatement(Statement):
 
     def __init__(self, str):
-        Statement.__init__(self, str)
-
-        #######################################################################
-        #todo: NEED TO ADD ERROR CHECKING
-        #######################################################################        
+        Statement.__init__(self, str)      
         self.parse_clauses()
 
     def execute(self):
         Table(self.from_clause).select(self.select_clause)
 
     def parse_clauses(self):
-
-        #######################################################################
-        #todo: NEED TO MAKE below re.search CASE INSENSITIVE USING FLAG syntax!
-        #######################################################################
-        self.select_clause = re.search(r'(?<=SELECT\s)(.*)(?=\sFROM)', self.str).group()
+        # Parses the raw string using REGEX to isolate the contents of the 
+        # SELECT clause (select_clause) and FROM clause (from_clause) for
+        # downstream use
+        self.select_clause = re.search(r'(?<=SELECT\s)(.*)(?=\sFROM)', self.str, re.I).group()
         self.select_clause = self.select_clause.split(',')
         self.select_clause = [i.strip() for i in self.select_clause]
         
-        self.from_clause = re.search(r'(?<=FROM\s)(.*)', self.str).group()
+        self.from_clause = re.search(r'(?<=FROM\s)(.*)', self.str, re.I).group()
+
 
 class UseStatement(Statement):
 

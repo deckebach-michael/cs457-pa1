@@ -24,37 +24,45 @@ Tables are stored as comma-separated files, where the first row in the file repr
 ## Functionality implemented (at a high level)
 At this time, the following SQL statements (and syntax) are supported:
 
+### ALTER TABLE
+Allows the user to add a new field or column of table to an already existing table. The table must exist. Note that there is no checking to ensure that field names are unique presently. Under the hood, the program is reading in the existing <table> into memory, appending a new field, {<field>}, to each row, and then writing that data back out to a new file of the same name.
+
     ALTER TABLE <table> ADD <field> <datatype>; 
 
-Allows the user to add a new field or column of table to an already existing table. The table must exist. Note that there is no checking to ensure that field names are unique presently. Under the hood, the program is reading in the existing <table> into memory, appending a new field, <field>, to each row, and then writing that data back out to a new file of the same name.
+### CREATE DATABASE
+Allows the user to initiate a new, empty database of name <database>. Under the hood, the program is using os.mkdir to create a new folder to represent the database.
 
     CREATE DATABASE <database>; 
     
-Allows the user to initiate a new, empty database of name <database>. Under the hood, the program is using os.mkdir to create a new folder to represent the database.
+### CREATE TABLE
+Allows the user to initiate a new, empty table of name <table>, with n number of fields as listed out in the comma-separated parenthetical group. Under the hood, the program is writing a csv with the first row consistent with the <field>s provided.
 
     CREATE TABLE <table> (<field> <datatype>, <field> <datatype>, ...);
 
-Allows the user to initiate a new, empty table of name <table>, with n number of fields as listed out in the comma-separated parenthetical group. Under the hood, the program is writing a csv with the first row consistent with the <field>s provided.
+### DROP DATABASE
+Removes the database <database> and any tables within. Under the hood, it is using os.remove and os.rmdir to achieve this.
 
     DROP DATABASE <database>;
 
-Removes the database <database> and any tables within. Under the hood, it is using os.remove and os.rmdir to achieve this.
+### DROP TABLE
+Removes a specific <table> from the active database. Under the hood, it is using os.remove.
 
     DROP TABLE <table>;
 
-Removes a specific <table> from the active database. Under the hood, it is using os.remove.
+### SELECT
+Queries and returns all values from <table>. Under the hood, it is using csv.reader and joining all values using a | separator before printing results to the terminal.
 
     SELECT * FROM <table>;
 
-Queries and returns all values from <table>. Under the hood, it is using csv.reader and joining all values using a | separator before printing results to the terminal.
+### USE
+Changes the active database to <database>. This command must be used before any of the <table> commands listed above. Under the hood, it is using os.chdir.
 
     USE <database>;
 
-Changes the active database to <database>. This command must be used before any of the <table> commands listed above. Under the hood, it is using os.chdir.
+### EXIT
+Finally, while not a SQL command, the special keyword 'EXIT' is supported to terminate the program.
 
     EXIT - terminates the program
-
-Finally, while not a SQL command, the special keyword 'EXIT' is supported to terminate the program.
 
 Note that for all SQL commands (i.e., excluding EXIT), semicolons (;) are strictly required. The program will return an error message if you attempt to pass it a SQL command that does not end in a semicolon.
 

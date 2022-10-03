@@ -1,4 +1,5 @@
-# CS457 PA1: DATABASE MANAGEMENT SYSTEM (DBMS)
+# CS457 PA1: DBMS
+# (DATABASE MANAGEMENT SYSTEM)
 
 ## How to run the code
 You can start the dbms by running dbms.py file in the /src/ directory. Once you have the dependencies installed (see here), run the program like so:
@@ -25,37 +26,37 @@ Tables are stored as comma-separated files, where the first row in the file repr
 At this time, the following SQL statements (and syntax) are supported:
 
 ### ALTER TABLE
-Allows the user to add a new field or column of table to an already existing table. The table must exist. Note that there is no checking to ensure that field names are unique presently. Under the hood, the program is reading in the existing <table> into memory, appending a new field, {<field>}, to each row, and then writing that data back out to a new file of the same name.
+Allows the user to add a new field or column of table to an already existing table. The table must exist. Note that there is no checking to ensure that field names are unique presently. Under the hood, the program is reading in the existing `<table>` into memory, appending a new field, `<field>`, to each row, and then writing that data back out to a new file of the same name.
 
     ALTER TABLE <table> ADD <field> <datatype>; 
 
 ### CREATE DATABASE
-Allows the user to initiate a new, empty database of name <database>. Under the hood, the program is using os.mkdir to create a new folder to represent the database.
+Allows the user to initiate a new, empty database of name `<database>`. Under the hood, the program is using os.mkdir to create a new folder to represent the database.
 
     CREATE DATABASE <database>; 
     
 ### CREATE TABLE
-Allows the user to initiate a new, empty table of name <table>, with n number of fields as listed out in the comma-separated parenthetical group. Under the hood, the program is writing a csv with the first row consistent with the <field>s provided.
+Allows the user to initiate a new, empty table of name `<table>`, with n number of fields as listed out in the comma-separated parenthetical group. Under the hood, the program is writing a csv with the first row consistent with the `<field>` list provided.
 
     CREATE TABLE <table> (<field> <datatype>, <field> <datatype>, ...);
 
 ### DROP DATABASE
-Removes the database <database> and any tables within. Under the hood, it is using os.remove and os.rmdir to achieve this.
+Removes the database `<database>` and any tables within. Under the hood, it is using os.remove and os.rmdir to achieve this.
 
     DROP DATABASE <database>;
 
 ### DROP TABLE
-Removes a specific <table> from the active database. Under the hood, it is using os.remove.
+Removes a specific `<table>` from the active database. Under the hood, it is using os.remove.
 
     DROP TABLE <table>;
 
 ### SELECT
-Queries and returns all values from <table>. Under the hood, it is using csv.reader and joining all values using a | separator before printing results to the terminal.
+Queries and returns all values from `<table>`. Under the hood, it is using csv.reader and joining all values using a | separator before printing results to the terminal.
 
     SELECT * FROM <table>;
 
 ### USE
-Changes the active database to <database>. This command must be used before any of the <table> commands listed above. Under the hood, it is using os.chdir.
+Changes the active database to `<database>`. This command must be used before any of the `<table>` commands listed above. Under the hood, it is using os.chdir.
 
     USE <database>;
 
@@ -69,4 +70,4 @@ Note that for all SQL commands (i.e., excluding EXIT), semicolons (;) are strict
 ## Contact
 You can find the repository at https://github.com/deckebach-michael/dbms
 
-To request access or for any questions, email me (Michael Deckebach) at michael.deckebach@gmail.com
+To request access or for any questions, email Michael Deckebach at michael.deckebach@gmail.com

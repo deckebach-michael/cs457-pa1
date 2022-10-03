@@ -1,5 +1,5 @@
 # CS457 PA1: DBMS
-# (DATABASE MANAGEMENT SYSTEM)
+(DATABASE MANAGEMENT SYSTEM)
 
 ## How to run the code
 You can start the dbms by running dbms.py file in the /src/ directory. Once you have the dependencies installed (see here), run the program like so:

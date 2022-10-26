@@ -64,8 +64,36 @@ class Table():
             csvreader = csv.reader(csvfile)
             for row in csvreader:
                 if select_clause == ['*']:
-                    print(' | '.join(row))
+                    print('|'.join(row))
                 else:
                     #todo: this is a placeholder to implement more advanced SELECT syntax
                     pass
 
+    def insert(self, values):
+
+        if not os.path.exists(self.name):
+            raise Exception("!Failed to insert into " + self.name + " because it does not exist.")
+        
+        fields = self._get_field_names()
+        if len(fields) != len(values):
+            raise Exception("!Failed to insert into " + self.name + " because field counts do not match.")
+
+        with open(self.name, 'a') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(values)
+            print("1 new record inserted.")   
+
+
+    def _get_field_names(self):
+        if not os.path.exists(self.name):
+            raise Exception("!Error - attempted to retrieve field names for a table that does not exist: " + self.name)
+        
+        field_names = []
+
+        with open(self.name) as csvfile:
+            reader = csv.reader(csvfile)
+            field_names = next(reader)
+
+        field_names = [field.split()[0] for field in field_names]
+        
+        return field_names

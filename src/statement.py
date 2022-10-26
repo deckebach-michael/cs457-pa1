@@ -42,6 +42,9 @@ class StatementFactory:
         elif self._is_drop_statement(str):
             return DropStatement(str)
 
+        elif self._is_insert_statement(str):
+            return InsertStatement(str)
+
         elif self._is_select_statement(str):
             return SelectStatement(str)
 
@@ -59,6 +62,9 @@ class StatementFactory:
 
     def _is_drop_statement(self, str):
         return bool(re.search(r'(?i)(DROP )\w{2}', str))
+
+    def _is_insert_statement(self, str):
+        return bool(re.search(r'(?i)(INSERT INTO )(.*)', str))
 
     def _is_select_statement(self, str):
         return bool(re.search(r'(?i)(SELECT )(.*)', str))
@@ -166,6 +172,23 @@ class DropStatement(Statement):
     def valid_type(self):
         return self.type in utils.KEYWORDS_OBJECTS
 
+class InsertStatement(Statement):
+
+    def __init__(self, str):
+        Statement.__init__(self, str)
+        self.parse_clauses()
+    
+    def execute(self):
+        Table(self.table_name).insert(self.values)
+
+    def parse_clauses(self):
+        # Parses the raw string using REGEX to isolate the table_name
+        # and the tuple values to be inserted for downstream use
+        self.table_name = re.search(r'(?<=INSERT INTO\s)(.*)(?=\sVALUES)', self.str, re.I).group()
+        
+        temp = re.search(r'(?<=\().*(?=\))', self.str).group().split(',')
+        self.values = [i.strip().replace("'", '') for i in temp if i != '']
+        
 
 class SelectStatement(Statement):
 

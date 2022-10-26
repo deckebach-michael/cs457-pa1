@@ -1,0 +1,17 @@
+CREATE DATABASE CS457_PA2;
+USE CS457_PA2;
+CREATE TABLE Product (pid int, name varchar(20), price float);
+INSERT INTO Product VALUES(1,	'Gizmo',      	19.99);
+INSERT INTO Product VALUES(2,	'PowerGizmo', 	29.99);
+INSERT INTO Product VALUES(3,	'SingleTouch', 	149.99);
+INSERT INTO Product VALUES(4,	'MultiTouch', 	199.99);
+INSERT INTO Product VALUES(5,	'SuperGizmo', 	49.99);
+SELECT * FROM Product;
+UPDATE Product SET name = 'Gizmo' WHERE name = 'SuperGizmo';
+UPDATE Product SET price = 14.99 WHERE name = 'Gizmo';
+SELECT * FROM Product;
+DELETE FROM product WHERE name = 'Gizmo';
+DELETE FROM product WHERE price > 150;
+SELECT * FROM Product;
+SELECT name, price FROM product WHERE pid != 2;
+EXIT

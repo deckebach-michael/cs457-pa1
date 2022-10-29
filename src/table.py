@@ -10,18 +10,15 @@ Currently supports ALTER TABLE, CREATE TABLE, DROP TABLE, and SELECT * FROM <tab
 '''
 
 import csv, os
-from typing import OrderedDict
 
-from condition import Condition
-from utils import KEYWORD_COMPARISON_OPERATORS
+from record import Record
 
 class Table():
     def __init__(self, name):
         self.name = name
 
     def alter(self, new_field):
-        if not os.path.exists(self.name):
-            raise Exception("!Failed to alter " + self.name + " because it does not exist.")
+        self._check_table_exists("alter")
     
         altered = []
         with open(self.name) as csvfile:
@@ -51,11 +48,8 @@ class Table():
             writer.writeheader()
             print("Table " + self.name + " created.")   
 
-
     def drop(self):
-        if not os.path.exists(self.name):
-            raise Exception("!Failed to delete " + self.name + " because it does not exist.")
-        
+        self._check_table_exists("delete")        
         os.remove(self.name)
         print("Table " + self.name + " deleted.")
 
@@ -73,8 +67,7 @@ class Table():
                     pass
 
     def insert(self, values):
-        if not os.path.exists(self.name):
-            raise Exception("!Failed to insert into " + self.name + " because it does not exist.")
+        self._check_table_exists("insert into")
         
         fields = self._get_field_names()
         if len(fields) != len(values):
@@ -86,17 +79,14 @@ class Table():
             print("1 new record inserted.")   
 
     def update(self, target_field, new_value, condition):
-        if not os.path.exists(self.name):
-            raise Exception("!Failed to update " + self.name + " because it does not exist.")
-        
+        self._check_table_exists("update")
+
         field_names = self._get_field_names()
-        if target_field not in field_names:
-            raise Exception("!Failed to update " + self.name + " because " + target_field + " not in table.")
-
-        target_column = field_names.index(target_field)
-
         count_modified = 0
         updated = []
+        
+        if target_field not in field_names:
+            raise Exception("!Failed to update " + self.name + " because " + target_field + " not in table.")
 
         with open(self.name) as csvfile:
             reader = csv.reader(csvfile)
@@ -104,24 +94,14 @@ class Table():
 
             for row in reader:
 
-                row_dict = OrderedDict(zip(field_names, row))
+                record = Record(field_names, row)
 
-                c = Condition(condition)
-
-                if c.field_name not in row_dict.keys():
-                    raise Exception("!Failed to update " + self.name + " because " + c.field_name + " is not a valid field name")
-
-                value_to_test = row_dict[c.field_name]
-                value_to_test_to = c.value
-
-                condition_met = KEYWORD_COMPARISON_OPERATORS[c.operator](value_to_test, value_to_test_to)
-                                
-                if condition_met:
-                    row_dict[target_field] = new_value
-                    updated.append(list(row_dict.values()))
+                if record.satisfies(condition):
+                    record.set_value(target_field, new_value)
+                    updated.append(record.get_values())
                     count_modified += 1
                 else:
-                    updated.append(row)
+                    updated.append(record.get_values())
 
         with open(self.name, 'w') as csvfile:
             writer = csv.writer(csvfile, lineterminator='\n')
@@ -132,13 +112,16 @@ class Table():
         else:
             print(str(count_modified) + " records modified.")
 
+    def _check_table_exists(self, action):
+       if not os.path.exists(self.name):
+            raise Exception("!Failed to " + action + " " + self.name + " because it does not exist.")
+  
+
 
     def _get_field_names(self):
-        if not os.path.exists(self.name):
-            raise Exception("!Error - attempted to retrieve field names for a table that does not exist: " + self.name)
+        self._check_table_exists("retrieve field names for table")
         
         field_names = []
-
         with open(self.name) as csvfile:
             reader = csv.reader(csvfile)
             field_names = next(reader)

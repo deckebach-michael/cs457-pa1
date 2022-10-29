@@ -10,7 +10,10 @@ Currently supports ALTER TABLE, CREATE TABLE, DROP TABLE, and SELECT * FROM <tab
 '''
 
 import csv, os
+from typing import OrderedDict
 
+from condition import Condition
+from utils import KEYWORD_COMPARISON_OPERATORS
 
 class Table():
     def __init__(self, name):
@@ -70,7 +73,6 @@ class Table():
                     pass
 
     def insert(self, values):
-
         if not os.path.exists(self.name):
             raise Exception("!Failed to insert into " + self.name + " because it does not exist.")
         
@@ -82,6 +84,53 @@ class Table():
             writer = csv.writer(csvfile)
             writer.writerow(values)
             print("1 new record inserted.")   
+
+    def update(self, target_field, new_value, condition):
+        if not os.path.exists(self.name):
+            raise Exception("!Failed to update " + self.name + " because it does not exist.")
+        
+        field_names = self._get_field_names()
+        if target_field not in field_names:
+            raise Exception("!Failed to update " + self.name + " because " + target_field + " not in table.")
+
+        target_column = field_names.index(target_field)
+
+        count_modified = 0
+        updated = []
+
+        with open(self.name) as csvfile:
+            reader = csv.reader(csvfile)
+            updated.append(next(reader))
+
+            for row in reader:
+
+                row_dict = OrderedDict(zip(field_names, row))
+
+                c = Condition(condition)
+
+                if c.field_name not in row_dict.keys():
+                    raise Exception("!Failed to update " + self.name + " because " + c.field_name + " is not a valid field name")
+
+                value_to_test = row_dict[c.field_name]
+                value_to_test_to = c.value
+
+                condition_met = KEYWORD_COMPARISON_OPERATORS[c.operator](value_to_test, value_to_test_to)
+                                
+                if condition_met:
+                    row_dict[target_field] = new_value
+                    updated.append(list(row_dict.values()))
+                    count_modified += 1
+                else:
+                    updated.append(row)
+
+        with open(self.name, 'w') as csvfile:
+            writer = csv.writer(csvfile, lineterminator='\n')
+            writer.writerows(updated)
+        
+        if count_modified == 1:
+            print(str(count_modified) + " record modified.")
+        else:
+            print(str(count_modified) + " records modified.")
 
 
     def _get_field_names(self):
@@ -97,3 +146,7 @@ class Table():
         field_names = [field.split()[0] for field in field_names]
         
         return field_names
+
+
+
+        # Table(self.table_name).update(self.target_field, self.target_value, self.conditions)

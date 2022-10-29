@@ -48,6 +48,9 @@ class StatementFactory:
         elif self._is_select_statement(str):
             return SelectStatement(str)
 
+        elif self._is_update_statement(str):
+            return UpdateStatement(str)
+
         elif self._is_use_statement(str):
             return UseStatement(str)
 
@@ -68,6 +71,9 @@ class StatementFactory:
 
     def _is_select_statement(self, str):
         return bool(re.search(r'(?i)(SELECT )(.*)', str))
+
+    def _is_update_statement(sefl, str):
+        return bool(re.search(r'(?i)(UPDATE )(.*)( SET )(.*)', str))
 
     def _is_use_statement(self, str):
         return bool(re.search(r'(?i)(USE )\w{2}', str))
@@ -208,6 +214,22 @@ class SelectStatement(Statement):
         self.select_clause = [i.strip() for i in self.select_clause]
         
         self.from_clause = re.search(r'(?<=FROM\s)(.*)', self.str, re.I).group()
+
+
+class UpdateStatement(Statement):
+
+    def __init__(self, str):
+        Statement.__init__(self, str)
+        self.parse_clauses()
+
+    def execute(self):
+        Table(self.table_name).update(self.target_field, self.target_value, self.condition)
+
+    def parse_clauses(self):
+        self.table_name = re.search(r'(?<=UPDATE\s)(.*)(?=\sSET)', self.str, re.I).group()
+        self.target_field = re.search(r'(?<=SET\s)(.*?)(?=\s=)', self.str, re.I).group().replace("'", '')
+        self.target_value = re.search(r'(?<==\s)(.*)(?=\sWHERE)', self.str, re.I).group().replace("'", '')
+        self.condition = re.search(r'(?<=WHERE\s)(.*)', self.str, re.I).group()
 
 
 class UseStatement(Statement):

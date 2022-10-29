@@ -23,6 +23,15 @@ KEYWORDS_OBJECTS = {
     'TABLE'
 }
 
+KEYWORD_COMPARISON_OPERATORS = {
+    '=' : lambda l, r: l == r,
+    '>' : lambda l, r: l > r,
+    '<' : lambda l, r: l < r,
+    '>=': lambda l, r: l >= r,
+    '<=': lambda l, r: l <= r,
+    '!=': lambda l, r: l != r
+}
+
 ###############################################################################
 # UTILITY FUNCTIONS
 ###############################################################################

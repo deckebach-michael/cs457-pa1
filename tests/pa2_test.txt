@@ -10,8 +10,8 @@ SELECT * FROM Product;
 UPDATE Product SET name = 'Gizmo' WHERE name = 'SuperGizmo';
 UPDATE Product SET price = 14.99 WHERE name = 'Gizmo';
 SELECT * FROM Product;
-DELETE FROM product WHERE name = 'Gizmo';
-DELETE FROM product WHERE price > 150;
+DELETE FROM Product WHERE name = 'Gizmo';
+DELETE FROM Product WHERE price > 150;
 SELECT * FROM Product;
-SELECT name, price FROM product WHERE pid != 2;
+SELECT name, price FROM Product WHERE pid != 2;
 EXIT

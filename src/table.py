@@ -15,7 +15,7 @@ from record import Record
 
 class Table():
     def __init__(self, name):
-        self.name = str.lower(name)
+        self.name = name
 
     def alter(self, new_field):
         self._check_table_exists("alter")
@@ -95,7 +95,11 @@ class Table():
 
             header = next(reader)
             results = [field for field in header if field.split()[0] in select_clause]
-            print('|'.join(results))
+            if select_clause == ['*']:
+                print('|'.join(header))
+            else:
+                print('|'.join(results))
+
 
             for row in reader:
                 record = Record(field_names, field_types, row)

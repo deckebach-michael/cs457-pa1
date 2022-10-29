@@ -32,6 +32,11 @@ KEYWORD_COMPARISON_OPERATORS = {
     '!=': lambda l, r: l != r
 }
 
+KEYWORD_DATA_TYPES = {
+    'int'   : lambda s: int(s),
+    'float' : lambda s: float(s)
+}
+
 ###############################################################################
 # UTILITY FUNCTIONS
 ###############################################################################

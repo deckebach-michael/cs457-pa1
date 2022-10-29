@@ -44,4 +44,4 @@ class Database():
             raise Exception("!Failed to use " + self.name + " because it does not exist.")
 
         os.chdir(self.name)
-        print('Using database ' + self.name)
+        print('Using database ' + self.name + '.')

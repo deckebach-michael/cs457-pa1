@@ -39,6 +39,9 @@ class StatementFactory:
         elif self._is_create_statement(str):
             return CreateStatement(str)
 
+        elif self._is_delete_statement(str):
+            return DeleteStatement(str)
+
         elif self._is_drop_statement(str):
             return DropStatement(str)
 
@@ -62,6 +65,9 @@ class StatementFactory:
 
     def _is_create_statement(self, str):
         return bool(re.search(r'(?i)(CREATE )(.*)', str))
+
+    def _is_delete_statement(self, str):
+        return bool(re.search(r'(?i)(DELETE FROM )(.*)', str))
 
     def _is_drop_statement(self, str):
         return bool(re.search(r'(?i)(DROP )\w{2}', str))
@@ -150,6 +156,21 @@ class CreateStatement(Statement):
         return self.type in utils.KEYWORDS_OBJECTS
 
 
+class DeleteStatement(Statement):
+
+    def __init__(self, str):
+        Statement.__init__(self, str)
+        self.parse_clauses()
+
+    def execute(self):
+        Table(self.table_name).delete(self.condition)
+        pass
+
+    def parse_clauses(self):
+        self.table_name = re.search(r'(?<=DELETE FROM\s)(\w+)', self.str, re.I).group()
+        self.condition = re.search(r'(?<=WHERE\s)(.*)', self.str, re.I).group()
+
+
 class DropStatement(Statement):
 
     def __init__(self, str):
@@ -203,7 +224,7 @@ class SelectStatement(Statement):
         self.parse_clauses()
 
     def execute(self):
-        Table(self.from_clause).select(self.select_clause)
+        Table(self.from_clause).select(self.select_clause, self.where_clause)
 
     def parse_clauses(self):
         # Parses the raw string using REGEX to isolate the contents of the 
@@ -213,8 +234,12 @@ class SelectStatement(Statement):
         self.select_clause = self.select_clause.split(',')
         self.select_clause = [i.strip() for i in self.select_clause]
         
-        self.from_clause = re.search(r'(?<=FROM\s)(.*)', self.str, re.I).group()
-
+        self.from_clause = re.search(r'(?<=FROM\s)(\w+)', self.str, re.I).group()
+        self.where_clause = re.search(r'(?<=WHERE\s)(.*)', self.str, re.I)
+        
+        if self.where_clause:
+            self.where_clause = self.where_clause.group()
+            
 
 class UpdateStatement(Statement):
 

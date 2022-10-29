@@ -15,7 +15,7 @@ from record import Record
 
 class Table():
     def __init__(self, name):
-        self.name = name
+        self.name = str.lower(name)
 
     def alter(self, new_field):
         self._check_table_exists("alter")
@@ -48,23 +48,63 @@ class Table():
             writer.writeheader()
             print("Table " + self.name + " created.")   
 
+    def delete(self, condition):
+        
+        field_names = self._get_field_names()
+        field_types = self._get_field_types()
+        count_deleted = 0
+        updated = []
+
+        self._check_table_exists("delete records from table")
+
+        with open(self.name) as csvfile:
+            reader = csv.reader(csvfile)
+            updated.append(next(reader))
+
+            for row in reader:
+
+                record = Record(field_names, field_types, row)
+
+                if record.satisfies(condition):
+                    count_deleted += 1
+                else:
+                    updated.append(record.get_values())
+
+        with open(self.name, 'w') as csvfile:
+            writer = csv.writer(csvfile, lineterminator='\n')
+            writer.writerows(updated)
+        
+        if count_deleted == 1:
+            print(str(count_deleted) + " record deleted.")
+        else:
+            print(str(count_deleted) + " records deleted.")
+
     def drop(self):
         self._check_table_exists("delete")        
         os.remove(self.name)
         print("Table " + self.name + " deleted.")
 
-    def select(self, select_clause):
-        if not os.path.exists(self.name):
-            raise Exception("!Failed to query " + self.name + " because it does not exist.")
-        
+    def select(self, select_clause, where_clause=None):
+        self._check_table_exists("query")
+
+        field_names = self._get_field_names()
+        field_types = self._get_field_types()
+
         with open(self.name, newline='\n') as csvfile:
-            csvreader = csv.reader(csvfile)
-            for row in csvreader:
-                if select_clause == ['*']:
-                    print('|'.join(row))
+            reader = csv.reader(csvfile)
+
+            header = next(reader)
+            results = [field for field in header if field.split()[0] in select_clause]
+            print('|'.join(results))
+
+            for row in reader:
+                record = Record(field_names, field_types, row)
+
+                if not record.satisfies(where_clause):
+                    continue
                 else:
-                    #todo: this is a placeholder to implement more advanced SELECT syntax
-                    pass
+                    results = record.get_values(select_clause)
+                    print('|'.join(results))
 
     def insert(self, values):
         self._check_table_exists("insert into")
@@ -82,6 +122,7 @@ class Table():
         self._check_table_exists("update")
 
         field_names = self._get_field_names()
+        field_types = self._get_field_types()
         count_modified = 0
         updated = []
         
@@ -94,7 +135,7 @@ class Table():
 
             for row in reader:
 
-                record = Record(field_names, row)
+                record = Record(field_names, field_types, row)
 
                 if record.satisfies(condition):
                     record.set_value(target_field, new_value)
@@ -130,6 +171,16 @@ class Table():
         
         return field_names
 
+    def _get_field_types(self):
+        self._check_table_exists("retrieve field types for table")
+        
+        header = []
+        with open(self.name) as csvfile:
+            reader = csv.reader(csvfile)
+            header = next(reader)
+
+        field_types = [field.split()[1] for field in header]
+        
+        return field_types
 
 
-        # Table(self.table_name).update(self.target_field, self.target_value, self.conditions)

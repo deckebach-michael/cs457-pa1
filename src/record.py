@@ -2,7 +2,11 @@
 Name: record.py
 Author: Michael Deckebach
 Date: 2022-10-29
-Description: A class to represent a row of data in a Table
+Description: A class to represent a row of data in a Table. Values are
+stored as an ordered dictionary attribute called 'data' within a 
+Record. The most important method of this class is .satisfies(),
+which checks to see if the Record's data meets a given criteria, which
+must be passed to the function as a string.
 '''
 
 from collections import OrderedDict
@@ -14,6 +18,7 @@ class Record:
 
     def __init__(self, fields, types, values):
         
+        # Convert values (typically str) to correct data types
         typed_values = []
         for type, value in zip(types, values):
             if type in KEYWORD_DATA_TYPES:
@@ -23,6 +28,8 @@ class Record:
 
         self.data = OrderedDict(zip(fields, typed_values))
 
+    # Returns list of values for the Record, which can be specified
+    # by the option fields arg. Returns all values if not specified.
     def get_values(self, fields=None):
         if fields == None or fields == ['*']:
             return [str(value) for value in self.data.values()]
@@ -34,10 +41,13 @@ class Record:
 
     def satisfies(self, condition):
 
+        # Necessary for SQL statements that omit WHERE clause
         if condition == None:
             return True
 
         else:
+            # Currently only supports conditions in the following format:
+            # <target_field> <operator> <value>, like 'id = 5'
             parsed = condition.split()
 
             if len(parsed) != 3:
@@ -53,4 +63,5 @@ class Record:
             target_value = self.data[target_field]
             typed_value = type(target_value)(value)
 
+            # Uses lambda function to convert operator string into actual condition
             return KEYWORD_COMPARISON_OPERATORS[operator](target_value, typed_value)                                

@@ -8,8 +8,11 @@ Description: Implementation of the following classes:
     Statement - Interface providing the basic structure of a SQL statement
     AlterStatement - An ALTER TABLE statement
     CreateStatement - A CREATE statement (CREATE DATABASE or CREATE TABLE)
+    DeleteStatement - A DELETE statement (DELETE FROM <table> WHERE <condition>)
     DropStatement - A DROP statement (DROP DATABASE or DROP TABLE)
-    SelectStatement - A SELECT statement (SELECT * FROM <table>)
+    InsertStatement - An INSERT statement (INSERT INTO <table> VALUES(<value>,...))
+    SelectStatement - A SELECT statement (SELECT * FROM <table> [WHERE <condition>])
+    UpdateStatement - An UPDATE statement (UPDATE <table> SET <field> = <value> WHERE <condition>)
     UseStatement - A USE statement (USE <database>)
 
 '''
@@ -239,7 +242,7 @@ class SelectStatement(Statement):
         
         if self.where_clause:
             self.where_clause = self.where_clause.group()
-            
+
 
 class UpdateStatement(Statement):
 

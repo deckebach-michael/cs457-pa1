@@ -1,7 +1,7 @@
 '''
 Name: utils.py
 Author: Michael Deckebach
-Date: 2022-10-01
+Date: 2022-10-30
 Description: A collection of global variables and utility functions 
 used by the database management system
 '''

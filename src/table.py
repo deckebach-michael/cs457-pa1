@@ -1,12 +1,12 @@
 '''
 Name: table.py
 Author: Michael Deckebach
-Date: 2022-10-01
+Date: 2022-10-30
 Description: Implementation of a Table class, which represents two dimensional
 data (rows & columns) in a database. Records (tuples) are stored as 
 comma-separated values in a CSV file. Each CSV file can be thought of as 
 a single table. Field names and types are stored in the first row of the file.
-Currently supports ALTER TABLE, CREATE TABLE, DROP TABLE, and SELECT * FROM <table>.
+Currently supports ALTER, CREATE, DELETE, DROP, SELECT, and UPDATE commands.
 '''
 
 import csv, os
@@ -93,6 +93,9 @@ class Table():
         with open(self.name, newline='\n') as csvfile:
             reader = csv.reader(csvfile)
 
+            # Special code to handle headers separately, because they do not adhere
+            # to the same data type criteria as actual data rows do (e.g., a field
+            # of int data type still as a string header)
             header = next(reader)
             results = [field for field in header if field.split()[0] in select_clause]
             if select_clause == ['*']:
@@ -161,8 +164,6 @@ class Table():
        if not os.path.exists(self.name):
             raise Exception("!Failed to " + action + " " + self.name + " because it does not exist.")
   
-
-
     def _get_field_names(self):
         self._check_table_exists("retrieve field names for table")
         

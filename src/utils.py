@@ -6,6 +6,8 @@ Description: A collection of global variables and utility functions
 used by the database management system
 '''
 
+import sys
+
 ###############################################################################
 # GLOBAL VARIABLES
 ###############################################################################
@@ -47,7 +49,11 @@ KEYWORD_DATA_TYPES = {
 
 def get_input():
 
-    user_input = input()
+    if len(sys.argv) == 2:
+        with open(sys.argv[1], 'r') as file:
+            user_input = file.read()
+    else:
+        user_input = input()
 
     if _ends_with_semicolon(user_input) or _is_exit(user_input):
         return _split_statements(user_input)

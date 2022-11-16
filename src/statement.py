@@ -227,7 +227,8 @@ class SelectStatement(Statement):
         self.parse_clauses()
 
     def execute(self):
-        Table(self.from_clause).select(self.select_clause, self.where_clause)
+        tbl = Table(self.left_table_name, alias=self.left_table_alias)
+        tbl.select(self.select_clause, self.where_clause, self.join_type, self.right_table_name, self.right_table_alias)
 
     def parse_clauses(self):
         # Parses the raw string using REGEX to isolate the contents of the 
@@ -237,11 +238,49 @@ class SelectStatement(Statement):
         self.select_clause = self.select_clause.split(',')
         self.select_clause = [i.strip() for i in self.select_clause]
         
-        self.from_clause = re.search(r'(?<=FROM\s)(\w+)', self.str, re.I).group()
-        self.where_clause = re.search(r'(?<=WHERE\s)(.*)', self.str, re.I)
+        self.from_clause = re.search(r'(?<=FROM\s)[\w\s,]+?(?=(\s(ON|WHERE))|$)', self.str, re.I).group()
+        self.where_clause = re.search(r'(?<=WHERE|...ON)\s(.*)', self.str, re.I)
         
         if self.where_clause:
             self.where_clause = self.where_clause.group()
+
+        self.set_join_type()
+        self.parse_from_clause()
+
+    def set_join_type(self):
+        self.join_type = None
+        if re.search(r',|INNER JOIN', self.from_clause, re.I):
+            self.join_type = 'INNER'
+        elif re.search(r'LEFT OUTER JOIN', self.from_clause, re.I):
+            self.join_type = 'LEFT'
+
+    def parse_from_clause(self):
+
+        self.right_table = None
+        self.right_table_name = None
+        self.right_table_alias = None
+
+        from_split = re.split(r'(INNER JOIN|LEFT OUTER JOIN|,)', self.from_clause, maxsplit=3, flags=re.I)
+
+        left_table = from_split[0].strip().split()
+
+        if len(from_split) == 1:
+            right_table = None
+        else:
+            right_table = from_split[2].strip().split()
+            self.right_table_name = right_table[0]
+
+            if len(right_table) == 2:
+                self.right_table_alias = right_table[1]
+            else:
+                self.right_table_alias = None
+        
+        self.left_table_name = left_table[0]
+
+        if len(left_table) == 2:
+            self.left_table_alias = left_table[1]
+        else:
+            self.left_table_alias = None  
 
 
 class UpdateStatement(Statement):

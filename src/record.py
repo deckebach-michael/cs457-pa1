@@ -61,7 +61,11 @@ class Record:
                 raise Exception("!Failed - " + target_field + " is not a valid field name")
 
             target_value = self.data[target_field]
-            typed_value = type(target_value)(value)
+
+            if value not in self.data.keys():
+               typed_value = type(target_value)(value)
+            else:
+                typed_value = self.data[value]
 
             # Uses lambda function to convert operator string into actual condition
             return KEYWORD_COMPARISON_OPERATORS[operator](target_value, typed_value)                                

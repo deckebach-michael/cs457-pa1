@@ -14,8 +14,9 @@ import csv, os
 from record import Record
 
 class Table():
-    def __init__(self, name):
+    def __init__(self, name, alias=None):
         self.name = name
+        self.alias = alias
 
     def alter(self, new_field):
         self._check_table_exists("alter")
@@ -84,7 +85,59 @@ class Table():
         os.remove(self.name)
         print("Table " + self.name + " deleted.")
 
-    def select(self, select_clause, where_clause=None):
+    def select(self, select_clause, where_clause=None, join_type=None, right_table=None, right_table_alias=None):
+        
+        if join_type:
+            self.join_select(select_clause, where_clause, join_type, right_table, right_table_alias)
+        else:
+            self.single_select(select_clause, where_clause)
+
+    def join_select(self, select_clause, where_clause, join_type, right_table, right_table_alias):
+        right = Table(right_table, right_table_alias)
+
+        self._check_table_exists("query")
+        right._check_table_exists("query")
+
+        field_names = self._get_field_names() + right._get_field_names()
+        field_types = self._get_field_types() + right._get_field_types()
+
+        if self.alias:
+            where_clause = where_clause.replace(self.alias + '.', '')
+        if right.alias:
+            where_clause = where_clause.replace(right_table_alias + '.', '')
+
+        with (open(self.name, newline='\n') as l_csvfile,
+              open(right.name, newline='\n') as r_csvfile
+        ):
+            l_reader = csv.reader(l_csvfile)
+            r_reader = csv.reader(r_csvfile)
+
+            header = next(l_reader) + next(r_reader)
+            print('|'.join(header))
+
+            for l_row in l_reader:
+                is_printed = False
+
+                for r_row in r_reader:
+                    
+                    combined_row = l_row + r_row
+                    record = Record(field_names, field_types, combined_row)
+
+                    if record.satisfies(where_clause):
+                        results = record.get_values(select_clause)
+                        print('|'.join(results))
+                        is_printed = True
+   
+                if join_type == 'LEFT' and is_printed == False:
+                    null_values = len(header) - len(l_row)                    
+                    left_join_row = l_row + ['' for i in range(null_values)]
+                    print(('|').join(left_join_row))
+
+                r_csvfile.seek(0)
+                next(r_reader)
+
+
+    def single_select(self, select_clause, where_clause=None):
         self._check_table_exists("query")
 
         field_names = self._get_field_names()

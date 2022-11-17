@@ -46,7 +46,7 @@ Allows the user to initiate a new, empty table of name `<table>`, with n number 
 
     CREATE TABLE <table> (<field> <datatype>, <field> <datatype>, ...);
 
-## DELETE
+### DELETE
 Removes records from a `<table>` according to the condition(s) specified. Under the hood, it opens the table's file and loops through each row checking to see if the condition is satisfied. If it is met, the row is not written back to the file. Thus, only rows that do not meet the criteria are retained.
 
     DELETE FROM <table> WHERE <condition>;

@@ -62,6 +62,7 @@ class Record:
 
             target_value = self.data[target_field]
 
+            # If logic supports <value> being a fixed value OR another <target_field>
             if value not in self.data.keys():
                typed_value = type(target_value)(value)
             else:

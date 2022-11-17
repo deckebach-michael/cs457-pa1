@@ -86,7 +86,9 @@ class Table():
         print("Table " + self.name + " deleted.")
 
     def select(self, select_clause, where_clause=None, join_type=None, right_table=None, right_table_alias=None):
-        
+        # Split function into two sub-functions, single_select (no join) and join_select
+        # (two table join) to preserve existing functionality
+
         if join_type:
             self.join_select(select_clause, where_clause, join_type, right_table, right_table_alias)
         else:
@@ -101,11 +103,15 @@ class Table():
         field_names = self._get_field_names() + right._get_field_names()
         field_types = self._get_field_types() + right._get_field_types()
 
+        # Current functionality only supports unique field names across tables,
+        # so parsing WHERE clause to substitute any alias references for just
+        # the field name
         if self.alias:
             where_clause = where_clause.replace(self.alias + '.', '')
         if right.alias:
             where_clause = where_clause.replace(right_table_alias + '.', '')
 
+        # JOIN is performed by nested looping of both table files
         with (open(self.name, newline='\n') as l_csvfile,
               open(right.name, newline='\n') as r_csvfile
         ):
@@ -116,6 +122,8 @@ class Table():
             print('|'.join(header))
 
             for l_row in l_reader:
+                # Boolean value used to trigger extra record in LEFT OUTER JOIN
+                # if no matches are found
                 is_printed = False
 
                 for r_row in r_reader:
@@ -128,11 +136,14 @@ class Table():
                         print('|'.join(results))
                         is_printed = True
    
+                # Extra steps to output extra record in LEFT OUTER JOIN if
+                # no matches with the right table were found
                 if join_type == 'LEFT' and is_printed == False:
                     null_values = len(header) - len(l_row)                    
                     left_join_row = l_row + ['' for i in range(null_values)]
                     print(('|').join(left_join_row))
 
+                # Move the right file reader back to the first data row
                 r_csvfile.seek(0)
                 next(r_reader)
 

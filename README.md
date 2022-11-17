@@ -6,11 +6,11 @@ You can start the dbms by running dbms.py file in the /src/ directory. Once you 
 
     python src/dbms.py
 
-Additionally, the dbms has been tested using the PA2 test script. The test script can be run through the dmbs either using a filename argument or using the standard input (on Linux):
+Additionally, the dbms has been tested using the PA3 test script. The test script can be run through the dmbs either using a filename argument or using the standard input (on Linux):
 
-    python src/dbms.py tests/pa2_test.txt
+    python src/dbms.py tests/pa3_test.txt
 
-    python src/dbms.py < tests/pa2_test.txt
+    python src/dbms.py < tests/pa3_test.txt
 
 ## Dependencies
 This program is built using Python 3.10.4 and requires Ubuntu version 18 or above. It uses the following standard library modules:
@@ -61,17 +61,34 @@ Removes a specific `<table>` from the active database. Under the hood, it is usi
 
     DROP TABLE <table>;
 
-## INSERT INTO
+### INSERT INTO
 Adds a record to `<table>`. Under the hood, it opens up the file in append mode and adds the values supplied in the `VALUES` clause as a new row. Simple checking to ensure the correctly number of values is provided.
 
     INSERT INTO <table> VALUES(<value1>, <value2>, ...);
 
 ### SELECT
-Queries and returns contents of `<table>`, as specified by the `SELECT` and `WHERE` clauses. Under the hood, it loads the table into memory using csv.reader, then loops through each row as a Record to see if `<condition>` is satisfied. Finally, if the condition is satisfied, it returns the values for the `<columns>` specified in the `SELECT` clause (or all values if the special character `*` is provided). All values are printed to th eterminal using a | separator.
+Queries and returns contents of `<table>`, as specified by the `SELECT` and `WHERE` clauses. Under the hood, it loads the table into memory using csv.reader, then loops through each row as a Record to see if `<condition>` is satisfied. Finally, if the condition is satisfied, it returns the values for the `<columns>` specified in the `SELECT` clause (or all values if the special character `*` is provided). All values are printed to the terminal using a | separator.
 
     SELECT <columns> FROM <table> WHERE <condition>;
 
-## UPDATE
+#### INNER JOIN
+The basic SELECT syntax above is expanded to support INNER JOINs in the following format:
+
+    SELECT <columns> FROM <table1>, <table2> WHERE <condition>;
+    SELECT <columns> FROM <table1> INNER JOIN <table2> ON <condition>;
+
+Under the hood, both files for the corresponding tables are opened and iterated through in a nested loop, with `<table1>` records comprising the outer loop and `<table2>` records making up the inner loop. For each combination of records between the two tables, the `<condition>` is evaluated. Only combinations that satisfy the `<condition>` are returned.
+
+#### LEFT OUTER JOIN
+The basic SELECT syntax above is expanded to support LEFT OUTER JOINs in the following format:
+
+    SELECT <columns> FROM <table1> LEFT OUTER JOIN <table2> ON <condition>;
+
+This implementation is near-identical to the INNER JOIN implementation. The only difference being that a special `is_printed` boolean flag tracks whether `<table1>`'s record has had at least one match with a record from `<table2>` that satisfies `<condition>` and thus has been returned to the console.
+
+If at the end of the inner loop through `<table2>`'s records, no match has been found (i.e., `is_printed` is still `False`), a special record consisting of the values of the record in `<table1>` with `None` values for the missing `<table2>` fields is constructed and returned to the console.
+
+### UPDATE
 Changes values in records from a `<table>` when the row satsifies a given `<condition>`. Under the hood, it opens the table using csv.reader, then loops through each row as a Record to test if it satisfies `<condition>`. If so, it sets the `<target_field>` to `<new_value>` in the Record before writing that record back to disk using csv.writer.
 
     UPDATE <table> SET <target_field> = <new_value> WHERE <condtion>;

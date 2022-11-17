@@ -248,6 +248,8 @@ class SelectStatement(Statement):
         self.parse_from_clause()
 
     def set_join_type(self):
+        # Helper function to parse join type of a SELECT clause, currently supports
+        # only INNER JOIN and LEFT OUTER JOIN syntax
         self.join_type = None
         if re.search(r',|INNER JOIN', self.from_clause, re.I):
             self.join_type = 'INNER'
@@ -255,13 +257,16 @@ class SelectStatement(Statement):
             self.join_type = 'LEFT'
 
     def parse_from_clause(self):
-
+        # Helper function to pull out table names and aliases from a FROM clause
+        # with consideration for whether it contains a JOIN
         self.right_table = None
         self.right_table_name = None
         self.right_table_alias = None
 
+        # Split up clause based on the JOIN keywords (or lack thereof)
         from_split = re.split(r'(INNER JOIN|LEFT OUTER JOIN|,)', self.from_clause, maxsplit=3, flags=re.I)
 
+        # This is the entire string up to any JOIN keyword, split into a list
         left_table = from_split[0].strip().split()
 
         if len(from_split) == 1:
@@ -270,6 +275,7 @@ class SelectStatement(Statement):
             right_table = from_split[2].strip().split()
             self.right_table_name = right_table[0]
 
+            # If len == 2, then that means the user entered an alias
             if len(right_table) == 2:
                 self.right_table_alias = right_table[1]
             else:

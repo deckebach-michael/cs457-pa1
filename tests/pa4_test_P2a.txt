@@ -1,0 +1,6 @@
+USE CS457_PA4;
+SELECT * FROM Flights;
+BEGIN TRANSACTION;
+UPDATE Flights SET status = 1 WHERE seat = 22;
+COMMIT;
+SELECT * FROM Flights;

@@ -1,0 +1,7 @@
+CREATE DATABASE CS457_PA4;
+USE CS457_PA4;
+CREATE TABLE Flights (seat int, status int);
+INSERT INTO Flights VALUES (22,0);
+INSERT INTO Flights VALUES (23,1);
+BEGIN TRANSACTION;
+UPDATE Flights SET status = 1 WHERE seat = 22;

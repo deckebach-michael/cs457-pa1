@@ -38,9 +38,15 @@ class StatementFactory:
 
         if self._is_alter_statement(str):
             return AlterStatement(str)
+
+        elif self._is_begin_statement(str):
+            return BeginStatement(str)
         
         elif self._is_create_statement(str):
             return CreateStatement(str)
+
+        elif self._is_commit_statement(str):
+            return CommitStatement(str)
 
         elif self._is_delete_statement(str):
             return DeleteStatement(str)
@@ -66,8 +72,14 @@ class StatementFactory:
     def _is_alter_statement(self, str):
         return bool(re.search(r'(?i)(ALTER )(.*)', str))
 
+    def _is_begin_statement(self, str):
+        return bool(re.search(r'(?i)(BEGIN TRANSACTION)', str))
+
     def _is_create_statement(self, str):
         return bool(re.search(r'(?i)(CREATE )(.*)', str))
+
+    def _is_commit_statement(self, str):
+        return bool(re.search(r'(?i)(COMMIT)', str))
 
     def _is_delete_statement(self, str):
         return bool(re.search(r'(?i)(DELETE FROM )(.*)', str))
@@ -96,6 +108,8 @@ class Statement:
         self.str = str
         self.parsed = str.split()
         self.num_words = len(self.parsed)
+        self.start_transaction = False
+        self.end_transaction = False
 
     def execute(self):
         pass
@@ -112,6 +126,16 @@ class AlterStatement(Statement):
     def parse_clauses(self):
         self.from_clause = re.search(r'(?<=ALTER TABLE\s)(.*)(?=\sADD)', self.str, re.I).group()
         self.new_field = re.search(r'(?<=ADD\s)(.*)', self.str, re.I).group().strip()
+
+
+class BeginStatement(Statement):
+
+    def __init__(self, str):
+        Statement.__init__(self, str)
+        self.start_transaction = True
+
+    def execute(self):
+        print("Transaction starts.")
 
 
 class CreateStatement(Statement):
@@ -157,6 +181,16 @@ class CreateStatement(Statement):
 
     def valid_type(self):
         return self.type in utils.KEYWORDS_OBJECTS
+
+
+class CommitStatement(Statement):
+
+    def __init__(self, str):
+        Statement.__init__(self, str)
+        self.end_transaction = True
+
+    def execute(self):
+        print("Transaction committed.")
 
 
 class DeleteStatement(Statement):

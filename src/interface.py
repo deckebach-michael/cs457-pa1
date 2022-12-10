@@ -23,6 +23,8 @@ Semicolons (;) are strictly required to denote a SQL statement, but not required
 for additional, non-SQL interface commands like EXIT.
 '''
 
+import os
+
 from statement import StatementFactory
 from utils import get_input
 
@@ -30,6 +32,10 @@ from utils import get_input
 def main(args=None):
 
     while True:
+
+        is_transaction = False
+        locked_tables = []
+
         try:
             statements = get_input()
             factory = StatementFactory()
@@ -40,6 +46,19 @@ def main(args=None):
                     quit()
 
                 stmnt = factory.make_statement(stmt_str)
+
+                if stmnt.start_transaction:
+                    is_transaction = True
+
+                if stmnt.end_transaction:
+
+                    for tbl in locked_tables:
+                        os.remove(tbl)
+                        os.rename(tbl + '_lock', t)
+
+                    locked_tables = []
+                    is_transaction = False
+                    
                 stmnt.execute()
 
         except Exception as exc:

@@ -114,6 +114,16 @@ class Statement:
     def execute(self):
         pass
 
+    def get_locked_tables(self):
+        return self.locked_tables
+
+    def get_table_name(self):
+        pass
+    
+    def set_table_name(self, new_name):
+        pass
+
+
 class AlterStatement(Statement):
 
     def __init__(self, str):
@@ -126,6 +136,12 @@ class AlterStatement(Statement):
     def parse_clauses(self):
         self.from_clause = re.search(r'(?<=ALTER TABLE\s)(.*)(?=\sADD)', self.str, re.I).group()
         self.new_field = re.search(r'(?<=ADD\s)(.*)', self.str, re.I).group().strip()
+
+    def get_table_name(self):
+        return self.from_clause
+
+    def set_table_name(self, new_name):
+        self.from_clause = new_name
 
 
 class BeginStatement(Statement):
@@ -161,7 +177,7 @@ class CreateStatement(Statement):
         elif self.type == 'TABLE':
             return self.num_words >= 3
  
-    def execute(self):
+    def execute(self):        
         if self.type == 'DATABASE':
             Database(self.object_name).create()
         elif self.type == 'TABLE':
@@ -182,15 +198,28 @@ class CreateStatement(Statement):
     def valid_type(self):
         return self.type in utils.KEYWORDS_OBJECTS
 
+    def get_table_name(self):
+        if self.type == 'TABLE':
+            return self.object_name
+        else:
+            raise Exception("Error: cannot get a table name for a database-specific command")
+
+    def set_table_name(self, new_name):
+        if self.type == 'TABLE':
+            self.object_name = new_name
 
 class CommitStatement(Statement):
 
     def __init__(self, str):
         Statement.__init__(self, str)
         self.end_transaction = True
+        self.commits = 0
 
     def execute(self):
-        print("Transaction committed.")
+        if self.commits == 0:
+            print("Transaction abort.")
+        else:
+            print("Transaction committed.")
 
 
 class DeleteStatement(Statement):
@@ -207,6 +236,12 @@ class DeleteStatement(Statement):
         self.table_name = re.search(r'(?<=DELETE FROM\s)(\w+)', self.str, re.I).group()
         self.condition = re.search(r'(?<=WHERE\s)(.*)', self.str, re.I).group()
 
+    def get_table_name(self):
+        return self.table_name
+
+    def set_table_name(self, new_name):
+        self.table_name = new_name
+
 
 class DropStatement(Statement):
 
@@ -220,7 +255,7 @@ class DropStatement(Statement):
         self.object_name = self.parsed[2]
 
         if not self.valid_type():
-            raise Exception("Invalid DROP comman. Valid objects are DROP DATABASE <name> or DROP TABLE <name>")
+            raise Exception("Invalid DROP command. Valid objects are DROP DATABASE <name> or DROP TABLE <name>")
 
     def correct_size(self):
         return self.num_words == 3
@@ -235,6 +270,16 @@ class DropStatement(Statement):
 
     def valid_type(self):
         return self.type in utils.KEYWORDS_OBJECTS
+
+    def get_table_name(self):
+        if self.type == 'TABLE':
+            return self.object_name
+        else:
+            raise Exception("Error: cannot get a table name for a database-specific command")
+
+    def set_table_name(self, new_name):
+        if self.type == 'TABLE':
+            self.object_name = new_name
 
 class InsertStatement(Statement):
 
@@ -252,6 +297,12 @@ class InsertStatement(Statement):
         
         temp = re.search(r'(?<=\().*(?=\))', self.str).group().split(',')
         self.values = [i.strip().replace("'", '') for i in temp if i != '']
+
+    def get_table_name(self):
+        return self.table_name
+
+    def set_table_name(self, new_name):
+        self.table_name = new_name
         
 
 class SelectStatement(Statement):
@@ -322,6 +373,15 @@ class SelectStatement(Statement):
         else:
             self.left_table_alias = None  
 
+    def get_table_name(self):
+        if self.join_type != None:
+            raise Exception("JOINs not supported with Transactions. Please restrict queries to single tables")
+        else:
+            return self.left_table_name
+
+    def set_table_name(self, new_name):
+        if self.join_type != None:
+            self.left_table_name == new_name
 
 class UpdateStatement(Statement):
 
@@ -338,6 +398,11 @@ class UpdateStatement(Statement):
         self.target_value = re.search(r'(?<==\s)(.*)(?=\sWHERE)', self.str, re.I).group().replace("'", '')
         self.condition = re.search(r'(?<=WHERE\s)(.*)', self.str, re.I).group()
 
+    def get_table_name(self):
+        return self.table_name
+
+    def set_table_name(self, new_name):
+        self.table_name = new_name
 
 class UseStatement(Statement):
 

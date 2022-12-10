@@ -24,6 +24,7 @@ for additional, non-SQL interface commands like EXIT.
 '''
 
 import os
+import shutil
 
 from statement import StatementFactory
 from utils import get_input
@@ -31,10 +32,10 @@ from utils import get_input
 
 def main(args=None):
 
-    while True:
+    is_transaction = False
+    locked_tables = []
 
-        is_transaction = False
-        locked_tables = []
+    while True:
 
         try:
             statements = get_input()
@@ -54,12 +55,37 @@ def main(args=None):
 
                     for tbl in locked_tables:
                         os.remove(tbl)
-                        os.rename(tbl + '_lock', t)
+                        os.rename(tbl + '_lock', tbl)
+                        stmnt.commits += 1
 
                     locked_tables = []
                     is_transaction = False
-                    
-                stmnt.execute()
+
+                if is_transaction:
+                
+                    tbl_name = stmnt.get_table_name()
+
+                    if tbl_name:
+                        tbl_lock = tbl_name + '_lock'
+
+                        if os.path.exists(tbl_lock):
+
+                            if tbl_name in locked_tables:
+                                stmnt.set_table_name(tbl_lock)
+                                stmnt.execute()
+                            else:
+                                raise Exception("Error: Table " + tbl_name + " is locked!")
+                        else:
+                            shutil.copy(tbl_name, tbl_lock)
+                            locked_tables.append(tbl_name)
+                            stmnt.set_table_name(tbl_lock)
+                            stmnt.execute()
+
+                    else:
+                        stmnt.execute()
+                
+                else:
+                    stmnt.execute()
 
         except Exception as exc:
             print(exc)

@@ -7,7 +7,9 @@ Description: Implementation of the following classes:
     StatementFactory - Abstract class to create various SQL statements
     Statement - Interface providing the basic structure of a SQL statement
     AlterStatement - An ALTER TABLE statement
+    BeginStatment - A BEGIN TRANSACTION statement
     CreateStatement - A CREATE statement (CREATE DATABASE or CREATE TABLE)
+    CommitStatement = A COMMIT statement
     DeleteStatement - A DELETE statement (DELETE FROM <table> WHERE <condition>)
     DropStatement - A DROP statement (DROP DATABASE or DROP TABLE)
     InsertStatement - An INSERT statement (INSERT INTO <table> VALUES(<value>,...))

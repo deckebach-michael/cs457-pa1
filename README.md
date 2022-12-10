@@ -6,17 +6,30 @@ You can start the dbms by running dbms.py file in the /src/ directory. Once you 
 
     python src/dbms.py
 
-Additionally, the dbms has been tested using the PA3 test script. The test script can be run through the dmbs either using a filename argument or using the standard input (on Linux):
+Additionally, the dbms has been tested using the PA4 test script. *Because PA4 requires multiple terminals, please do not pass the scripts via argument or standard input (on Linux).* Instead, the test script has been provided in pieces and can be copied and pasted into the terminals of running instances like so:
 
-    python src/dbms.py tests/pa3_test.txt
+#### 1. Terminal 1
+`python src/dbms.py`
+Copy and paste the contents of `tests/pa4_test_P1a.txt` (or just type them out one-by-one)
 
-    python src/dbms.py < tests/pa3_test.txt
+#### 2. Terminal 2
+`python src/dbms.py`
+Copy and past the contents of `tests/pa4_test_P2a.txt` (or just type them out one-by-one)
+
+#### 3. Terminal 1
+Copy and paste the contents of `tests/pa4_test_P1b.txt` (or just type them out one-by-one)
+
+#### 4. Terminal 2
+Copy and past the contents of `tests/pa4_test_P2b.txt` (or just type them out one-by-one)
+
+Please reach out if you have any questions or issues!
 
 ## Dependencies
 This program is built using Python 3.10.4 and requires Ubuntu version 18 or above. It uses the following standard library modules:
 - csv - for file creation/deletion/manipulation
 - re - for parsing SQL statements
 - os - for directory creation/deletion as well as file/directory existance checking
+- shutil - for creating separate copies of tables (for transactions)
 - sys - for command line argument parsing
 
 ## How are databases structured and managed? 
@@ -28,6 +41,9 @@ Tables are stored as comma-separated files, where the first row in the file repr
 ## How are tuples stored?
 Tuples, or table records, are stored as comma-separated rows in the file that represents a table. When loaded into memory, a Record class is created for each tuple. The Record class contains the values as well as metadata of records (field names and types), so that manipulation ofthe tuple can be handled correctly.
 
+## How are transactions implemented?
+Transactions are implemented by created separate `<table>_lock` versions of the table files. This means locking is done at the table level. If a `_lock` table file is present, any user knows that the table is locked in a transaction. This also allows for concurrent users to read from the original disk version of a table if a transaction is mid-process but has not yet been committed. Once committed, the contents of the `_lock` file overwrite the original copy, thus "writing to disk."
+
 ## Functionality implemented (at a high level)
 At this time, the following SQL statements (and syntax) are supported:
 
@@ -35,6 +51,14 @@ At this time, the following SQL statements (and syntax) are supported:
 Allows the user to add a new field or column of table to an already existing table. The table must exist. Note that there is no checking to ensure that field names are unique presently. Under the hood, the program is reading in the existing `<table>` into memory, appending a new field, `<field>`, to each row, and then writing that data back out to a new file of the same name.
 
     ALTER TABLE <table> ADD <field> <datatype>; 
+
+### BEGIN TRANSACTION
+Beings a transaction event. It flips the session variable `is_transaction` to True, which is then used by subsequent commands to track what tables have been locked and modified.
+
+    BEGIN TRANSACTION;
+
+### COMMIT
+Completes a transaction event. It goes through every table locked by the transaction and commits their changes to disk. If no changes have been made, a transaction abort message is displayed.
 
 ### CREATE DATABASE
 Allows the user to initiate a new, empty database of name `<database>`. Under the hood, the program is using os.mkdir to create a new folder to represent the database.

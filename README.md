@@ -2,24 +2,22 @@
 (DATABASE MANAGEMENT SYSTEM)
 
 ## How to run the code
-You can start the dbms by running dbms.py file in the /src/ directory. Once you have the dependencies installed (see here), run the program like so:
+You can start the dbms by running dbms.py file in the /src/ directory. Once you have the dependencies installed (below), run the program like so:
 
     python src/dbms.py
 
-Additionally, the dbms has been tested using the PA4 test script. *Because PA4 requires multiple terminals, please do not pass the scripts via argument or standard input (on Linux).* Instead, the test script has been provided in pieces and can be copied and pasted into the terminals of running instances like so:
+Additionally, the dbms has been tested using the PA4 test script. *Because PA4 requires multiple terminals, please do not pass the scripts via argument or standard input (on Linux).* Instead, the test script has been provided in pieces and can be copied and pasted into the terminals of running instances in four steps like so:
 
-#### 1. Terminal 1
-`python src/dbms.py`
-Copy and paste the contents of `tests/pa4_test_P1a.txt` (or just type them out one-by-one)
+#### Step 1. Terminal 1
+Run `python src/dbms.py`, then copy and paste the contents of `tests/pa4_test_P1a.txt` (or just type them out one-by-one)
 
-#### 2. Terminal 2
-`python src/dbms.py`
-Copy and past the contents of `tests/pa4_test_P2a.txt` (or just type them out one-by-one)
+#### Step 2. Terminal 2
+Run `python src/dbms.py`, then copy and past the contents of `tests/pa4_test_P2a.txt` (or just type them out one-by-one)
 
-#### 3. Terminal 1
+#### Step 3. Terminal 1
 Copy and paste the contents of `tests/pa4_test_P1b.txt` (or just type them out one-by-one)
 
-#### 4. Terminal 2
+#### Step 4. Terminal 2
 Copy and past the contents of `tests/pa4_test_P2b.txt` (or just type them out one-by-one)
 
 Please reach out if you have any questions or issues!

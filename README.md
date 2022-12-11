@@ -6,21 +6,11 @@ You can start the dbms by running dbms.py file in the /src/ directory. Once you 
 
     python src/dbms.py
 
-Additionally, the dbms has been tested using the PA4 test script. *Because PA4 requires multiple terminals, please do not pass the scripts via argument or standard input (on Linux).* Instead, the test script has been provided in pieces and can be copied and pasted into the terminals of running instances in four steps like so:
+Additionally, the dbms has been tested using the PA5 test script. You can pass the script via command line argument or standard input (on Linux) like so:
 
-#### Step 1. Terminal 1
-Run `python src/dbms.py`, then copy and paste the contents of `tests/pa4_test_P1a.txt` (or just type them out one-by-one)
+    python src/dbms.py tests/pa5_test.txt
 
-#### Step 2. Terminal 2
-Run `python src/dbms.py`, then copy and past the contents of `tests/pa4_test_P2a.txt` (or just type them out one-by-one)
-
-#### Step 3. Terminal 1
-Copy and paste the contents of `tests/pa4_test_P1b.txt` (or just type them out one-by-one)
-
-#### Step 4. Terminal 2
-Copy and past the contents of `tests/pa4_test_P2b.txt` (or just type them out one-by-one)
-
-Please reach out if you have any questions or issues!
+    python src/dbms.py < tests/pa5_test.txt
 
 ## Dependencies
 This program is built using Python 3.10.4 and requires Ubuntu version 18 or above. It uses the following standard library modules:
@@ -41,6 +31,13 @@ Tuples, or table records, are stored as comma-separated rows in the file that re
 
 ## How are transactions implemented?
 Transactions are implemented by created separate `<table>_lock` versions of the table files. This means locking is done at the table level. If a `_lock` table file is present, any user knows that the table is locked in a transaction. This also allows for concurrent users to read from the original disk version of a table if a transaction is mid-process but has not yet been committed. Once committed, the contents of the `_lock` file overwrite the original copy, thus "writing to disk."
+
+## How are aggregations performed?
+Only single aggregations on complete tables are supported at this time. At a high level, the field to be aggregated and the type of aggregation to be performed are extracted using regex. The table is then read into memory, and the specific field is added to a list. The following aggregation functions are supported:
+
+    COUNT() - returns the number of rows in the table
+    AVG(<field>) - returns the average value for the specified field, as a decimal
+    MAX(<field>) - returns the greatest value for the specified field, as an integer
 
 ## Functionality implemented (at a high level)
 At this time, the following SQL statements (and syntax) are supported:

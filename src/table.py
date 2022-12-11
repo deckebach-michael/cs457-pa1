@@ -9,7 +9,7 @@ a single table. Field names and types are stored in the first row of the file.
 Currently supports ALTER, CREATE, DELETE, DROP, SELECT, and UPDATE commands.
 '''
 
-import csv, os
+import csv, os, re
 
 from record import Record
 
@@ -86,13 +86,41 @@ class Table():
         print("Table " + self.name + " deleted.")
 
     def select(self, select_clause, where_clause=None, join_type=None, right_table=None, right_table_alias=None):
-        # Split function into two sub-functions, single_select (no join) and join_select
-        # (two table join) to preserve existing functionality
+        # Split function into three sub-functions, single_select (no join), join_select
+        # (two table join), and agg_select (aggregations) to preserve existing functionality
 
         if join_type:
             self.join_select(select_clause, where_clause, join_type, right_table, right_table_alias)
+        elif len(select_clause) == 1 and re.search(r'(COUNT|AVG|MAX)\(.*?\)', select_clause[0], re.I):
+            self.agg_select(select_clause)
         else:
             self.single_select(select_clause, where_clause)
+
+    def agg_select(self, select_clause):
+        self._check_table_exists("query")
+
+        # pull out the aggregation keyword and field to be operated on
+        agg_type = re.search(r'.*(?=\()', select_clause[0], re.I).group()
+        field_name = re.search(r'(?<=\().*(?=\))', select_clause[0], re.I).group()
+        
+        # loop through the table and add all values to a list for aggregation
+        values = []
+        with open(self.name, newline='\n') as csvfile:
+            reader = csv.reader(csvfile)
+            header = next(reader)
+            for row in reader:
+                record = Record(self._get_field_names(), self._get_field_types(), row)
+                values.append(int(record.get_values([field_name])[0]))
+
+        print(select_clause[0])
+
+        # print out the aggregation based on the keyword used
+        if agg_type == 'COUNT':
+            print(len(values))
+        elif agg_type == 'MAX':
+            print(max(values))
+        elif agg_type == 'AVG':
+            print((sum(values) * 1.0 ) / len(values))
 
     def join_select(self, select_clause, where_clause, join_type, right_table, right_table_alias):
         right = Table(right_table, right_table_alias)
